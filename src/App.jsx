@@ -38,7 +38,7 @@ function App() {
     async function load() {
       try {
         setLoading(true)
-        const res = await fetch('/Nirma University - Ahmedabad, India [03 Oct].csv', { cache: 'no-store' })
+        const res = await fetch('/Nirma University - Ahmedabad, India [05 Oct].csv', { cache: 'no-store' })
         if (!res.ok) throw new Error('Failed to load CSV file')
         const csvText = await res.text()
 
@@ -132,10 +132,6 @@ function App() {
     return globalSorted.filter((p) => p.name.toLowerCase().includes(q))
   }, [globalSorted, query])
 
-  // Use current date as the updated date
-  const latestUpdated = useMemo(() => {
-    return new Date()
-  }, [])
 
   return (
     <>
@@ -183,7 +179,7 @@ function App() {
                 <div className="group rounded-2xl border border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 p-6 shadow-lg transition-transform hover:-translate-y-1 hover:shadow-xl">
                   <div className="text-center">
                     <div className="text-green-700 font-medium">Last Updated</div>
-                    <div className="mt-2 text-xl font-semibold text-amber-600">{latestUpdated ? formatShortDate(latestUpdated) : '-'}</div>
+                    <div className="mt-2 text-xl font-semibold text-amber-600">5th Oct 2025</div>
                   </div>
                 </div>
               </div>
