@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import Papa from 'papaparse'
 import PixelBlast from './PixelBlast'
 
 function App() {
@@ -37,14 +38,28 @@ function App() {
     async function load() {
       try {
         setLoading(true)
-        const res = await fetch('/results.json', { cache: 'no-store' })
-        if (!res.ok) throw new Error('Failed to load results.json')
-        const data = await res.json()
-        if (!Array.isArray(data)) throw new Error('Invalid data format')
-        setParticipants(data)
+        const res = await fetch('/Nirma University - Ahmedabad, India [03 Oct].csv', { cache: 'no-store' })
+        if (!res.ok) throw new Error('Failed to load CSV file')
+        const csvText = await res.text()
+
+        Papa.parse(csvText, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            if (results.errors.length) {
+              console.error('CSV Parsing errors:', results.errors)
+              throw new Error('Failed to parse CSV file')
+            }
+            setParticipants(results.data)
+            setLoading(false)
+          },
+          error: (err) => {
+            setError(err.message || 'Error parsing CSV')
+            setLoading(false)
+          },
+        })
       } catch (err) {
         setError(err.message || 'Error loading data')
-      } finally {
         setLoading(false)
       }
     }
@@ -86,15 +101,27 @@ function App() {
 
   // Normalize participants once; build global sorted list and rank map
   const { globalSorted, rankByKey } = useMemo(() => {
-    const normalized = participants.map((p) => ({
-      ...p,
-      name: p.user_name || p.name || 'Unknown',
-      count: typeof p.badge_count === 'number' ? p.badge_count : (p.course_count || 0),
-      key: p.public_id || p.profile_url || (p.user_name || p.name || 'Unknown'),
-    }))
+    if (!participants || participants.length === 0) {
+      return { globalSorted: [], rankByKey: new Map() }
+    }
+
+    const normalized = participants.map((p) => {
+      const courses = parseInt(p['# of Skill Badges Completed'], 10) || 0
+      const arcades = parseInt(p['# of Arcade Games Completed'], 10) || 0
+      return {
+        name: p['User Name'] || 'Unknown',
+        profile_url: p['Google Cloud Skills Boost Profile URL'],
+        courses: courses,
+        arcades: arcades,
+        count: courses + arcades,
+        key: p['Google Cloud Skills Boost Profile URL'] || p['User Name'] || Math.random(),
+      }
+    })
+
     const sorted = [...normalized].sort((a, b) => b.count - a.count)
     const map = new Map()
     sorted.forEach((p, idx) => map.set(p.key, idx + 1))
+
     return { globalSorted: sorted, rankByKey: map }
   }, [participants])
 
@@ -105,16 +132,10 @@ function App() {
     return globalSorted.filter((p) => p.name.toLowerCase().includes(q))
   }, [globalSorted, query])
 
-  // derive the latest updated timestamp across all items
+  // Use current date as the updated date
   const latestUpdated = useMemo(() => {
-    const times = participants
-      .map((p) => p.scraped_at)
-      .filter(Boolean)
-      .map((t) => new Date(t).getTime())
-    if (times.length === 0) return null
-    const maxTs = Math.max(...times)
-    return new Date(maxTs)
-  }, [participants])
+    return new Date()
+  }, [])
 
   return (
     <>
@@ -280,7 +301,9 @@ function App() {
                       <tr>
                         <th className="w-16 px-4 py-3 text-left text-sm font-semibold text-blue-800">Rank</th>
                         <th className="px-4 py-3 text-left text-sm font-semibold text-blue-800">Name</th>
-                        <th className="w-36 px-4 py-3 text-left text-sm font-semibold text-blue-800">Badges</th>
+                        <th className="w-28 px-4 py-3 text-left text-sm font-semibold text-blue-800">Skill Badges</th>
+                        <th className="w-28 px-4 py-3 text-left text-sm font-semibold text-blue-800">Arcades</th>
+                        <th className="w-24 px-4 py-3 text-left text-sm font-semibold text-blue-800">Total</th>
                         <th className="w-40 px-4 py-3 text-left text-sm font-semibold text-blue-800">Profile</th>
                       </tr>
                     </thead>
@@ -317,6 +340,16 @@ function App() {
                               </div>
                             </td>
                             <td className="px-4 py-3">
+                              <span className="inline-flex items-center rounded-md bg-gradient-to-r from-green-100 to-emerald-100 px-2 py-1 text-sm font-medium text-green-800 ring-1 ring-inset ring-green-200">
+                                {p.courses}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="inline-flex items-center rounded-md bg-gradient-to-r from-purple-100 to-pink-100 px-2 py-1 text-sm font-medium text-purple-800 ring-1 ring-inset ring-purple-200">
+                                {p.arcades}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
                               <span className="inline-flex items-center rounded-md bg-gradient-to-r from-blue-100 to-indigo-100 px-2 py-1 text-sm font-medium text-blue-800 ring-1 ring-inset ring-blue-200">
                                 {p.count}
                               </span>
@@ -343,7 +376,7 @@ function App() {
                       })}
                       {filtered.length === 0 && (
                         <tr>
-                          <td className="px-4 py-12 text-center text-slate-500" colSpan={4}>No participants found.</td>
+                          <td className="px-4 py-12 text-center text-slate-500" colSpan={6}>No participants found.</td>
                         </tr>
                       )}
                     </tbody>
