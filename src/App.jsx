@@ -132,7 +132,7 @@ function App() {
     return globalSorted.filter((p) => p.name.toLowerCase().includes(q))
   }, [globalSorted, query])
 
-
+ 
   return (
     <>
       <div className="min-h-screen  relative">
