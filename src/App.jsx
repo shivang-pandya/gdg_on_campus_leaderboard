@@ -179,7 +179,7 @@ function App() {
                 <div className="group rounded-2xl border border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 p-6 shadow-lg transition-transform hover:-translate-y-1 hover:shadow-xl">
                   <div className="text-center">
                     <div className="text-green-700 font-medium">Last Updated</div>
-                    <div className="mt-2 text-xl font-semibold text-amber-600">3rd Oct 2025/div>
+                    <div className="mt-2 text-xl font-semibold text-amber-600">3rd Oct 2025</div>
                   </div>
                 </div>
               </div>
