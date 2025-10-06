@@ -131,6 +131,32 @@ function App() {
     if (!q) return globalSorted
     return globalSorted.filter((p) => p.name.toLowerCase().includes(q))
   }, [globalSorted, query])
+  // Countdown timer logic
+  const calculateTimeLeft = () => {
+    const endDate = new Date('2025-10-31T23:59:59');
+    const now = new Date();
+    const diff = endDate - now;
+  
+    if (diff <= 0) {
+      return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    }
+  
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+  
+    return { days, hours, minutes, seconds };
+  };
+  
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
  
   return (
@@ -182,6 +208,19 @@ function App() {
                     <div className="mt-2 text-xl font-semibold text-amber-600">5th Oct 2025</div>
                   </div>
                 </div>
+                {/* Countdown Timer Card */}
+                <div className="group rounded-2xl border border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-lg transition-transform hover:-translate-y-1 hover:shadow-xl">
+                  <div className="text-center">
+                    <div className="text-blue-700 font-medium">Time Remaining</div>
+                    <div className="mt-3 text-3xl font-extrabold text-blue-600">
+                      {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
+                    </div>
+                    <div className="mt-2 text-sm text-slate-700 font-medium">
+                      Campaign ends on <span className="text-indigo-700 font-semibold">31st Oct 2025</span>
+                    </div>
+                  </div>
+                </div>
+
               </div>
 
               {/* Right: autoplay carousel with caption (YELLOW theme) */}
